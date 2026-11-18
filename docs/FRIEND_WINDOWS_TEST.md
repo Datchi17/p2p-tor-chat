@@ -12,8 +12,8 @@ chatting with Datchi (who sent you this) over Tor. It takes about **45 minutes**
 
 | | |
 |---|---|
-| Build | **run 44349921184** — https://github.com/Datchi17/p2p-tor-chat/actions/runs/44349921184 |
-| Source | commit `8cf17ad` (2026-11-18) |
+| Build | **run 44377699782** — https://github.com/Datchi17/p2p-tor-chat/actions/runs/44377699782 |
+| Source | commit `a1e9558` (2026-11-18) |
 | Installer | `P2P Chat_0.1.0_x64_en-US.msi` (fingerprint: **only from Datchi, read aloud on the call** — step 2) |
 
 **New in this version:**
@@ -62,7 +62,7 @@ You only need **one file**: the `.msi` installer.
 1. Go to **https://github.com/Datchi17/p2p-tor-chat/actions/workflows/build.yml**
    (sign in to GitHub first).
 2. Open the run named in **"Which version to test"** above (direct link:
-   https://github.com/Datchi17/p2p-tor-chat/actions/runs/44349921184). It has a green ✓.
+   https://github.com/Datchi17/p2p-tor-chat/actions/runs/44377699782). It has a green ✓.
    If Datchi tells you a newer run, use that one instead.
 3. Scroll down to **Artifacts** and click **`p2p-chat-Windows`**. A zip file downloads.
 4. Open the zip. Inside you'll find:

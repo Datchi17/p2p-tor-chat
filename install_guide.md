@@ -4,7 +4,7 @@ Both of you install the versions below, then do the installer test from
 [docs/FRIEND_WINDOWS_TEST.md](docs/FRIEND_WINDOWS_TEST.md) **together on a live voice or video
 call**, starting with the fingerprint check.
 
-All builds come from commit **`8cf17ad`** (2026-11-18). New in this version:
+All builds come from commit **`a1e9558`** (2026-11-18). New in this version:
 
 - **Received files can be saved again.** In every build since `a6145cd`, a file showed only
   as a grey line with no **Save…** button (found in the Windows test).
@@ -49,9 +49,9 @@ larger than 100 messages.
 | | Kali (Datchi17) | Windows (friend) |
 |---|---|---|
 | File | `P2P Chat_0.1.0_amd64.deb` | `P2P Chat_0.1.0_x64_en-US.msi` |
-| Where | built locally with `scripts/repro-build-linux.sh 8cf17ad`, or the **p2p-chat-linux-reproducible** download of the build run below | the **p2p-chat-Windows** download of the build run below → `msi\` folder |
-| Build run | https://github.com/Datchi17/p2p-tor-chat/actions/runs/44349921184 | same |
-| Fingerprint (SHA-256) | app binary inside the .deb: `39f8d048275f0b6e54dc5290d41de6e0383b374776672c923019bcb6018e21a9` (identical on Kali and GitHub — reproducible build) | installer: `88c55ac15a7cb8d699d818aa989e7bc92eb82718ff872e119fdaa0e906246fb7` |
+| Where | built locally with `scripts/repro-build-linux.sh a1e9558`, or the **p2p-chat-linux-reproducible** download of the build run below | the **p2p-chat-Windows** download of the build run below → `msi\` folder |
+| Build run | https://github.com/Datchi17/p2p-tor-chat/actions/runs/44377699782 | same |
+| Fingerprint (SHA-256) | app binary inside the .deb: `11ef2fc221356c97729a7026eea1e4d6e173bfb528d4aba2b6ed2ac114f6f22b` (identical on Kali and GitHub — reproducible build) | installer: `4e11d13a0d5fe92b5e69724cb4af5889baab9d4c7a00ec7619da3411de3b1194` |
 
 > **Important:** the fingerprints written here are for reference only. Anyone who can change
 > this repository could change this file too. What counts is the fingerprint **Datchi17 reads
@@ -68,7 +68,7 @@ download mixes old and new files.
 Close the app first. Your vault, contacts and messages are kept.
 
 ```bash
-cp ~/p2p-tor-chat/dist-repro/8cf17adb47a6f17346fd46e833ef04af01db1e1b/"P2P Chat_0.1.0_amd64.deb" /tmp/p2p-chat.deb
+cp ~/p2p-tor-chat/dist-repro/a1e9558a21fa144c07215578760cf97867943b89/"P2P Chat_0.1.0_amd64.deb" /tmp/p2p-chat.deb
 sudo apt install --reinstall /tmp/p2p-chat.deb
 ```
 
@@ -76,11 +76,11 @@ Before the call, download the Windows installer on Kali and compute the fingerpr
 read aloud:
 
 ```bash
-gh run download 44349921184 --repo Datchi17/p2p-tor-chat -n p2p-chat-Windows -D ~/p2p-win
+gh run download 44377699782 --repo Datchi17/p2p-tor-chat -n p2p-chat-Windows -D ~/p2p-win
 sha256sum ~/p2p-win/msi/*.msi
 ```
 
-It must print `88c55ac1…06246fb7` (the full value above). If it doesn't, stop.
+It must print `4e11d13a…de3b1194` (the full value above). If it doesn't, stop.
 
 ## Windows (your own PC first, then your friend)
 
@@ -88,7 +88,7 @@ Test it yourself first with [docs/WINDOWS_TEST.md](docs/WINDOWS_TEST.md). On a d
 run two copies of the app on Windows (its step 10a), since Kali is off while Windows runs.
 
 Your friend follows [docs/FRIEND_WINDOWS_TEST.md](docs/FRIEND_WINDOWS_TEST.md), using **build run
-44349921184** in step 1 (not just "the newest run": every Windows build has a different
+44377699782** in step 1 (not just "the newest run": every Windows build has a different
 fingerprint).
 
 ## On the call, in this order
