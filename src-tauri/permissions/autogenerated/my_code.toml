@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-my-code"
+description = "Enables the my_code command without any pre-configured scope."
+commands.allow = ["my_code"]
+
+[[permission]]
+identifier = "deny-my-code"
+description = "Denies the my_code command without any pre-configured scope."
+commands.deny = ["my_code"]

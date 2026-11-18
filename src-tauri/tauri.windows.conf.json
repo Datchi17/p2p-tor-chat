@@ -1,0 +1,7 @@
+{
+  "bundle": {
+    "resources": {
+      "../vendor/tor-windows/tor/": "tor/"
+    }
+  }
+}

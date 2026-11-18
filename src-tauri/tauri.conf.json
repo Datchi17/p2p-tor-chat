@@ -1,0 +1,69 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "P2P Chat",
+  "version": "0.1.0",
+  "identifier": "org.p2pchat.desktop",
+  "build": {
+    "frontendDist": "../ui/dist",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeDevCommand": "npm --prefix ../ui run dev",
+    "beforeBuildCommand": "npm --prefix ../ui run build"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "P2P Chat",
+        "width": 1100,
+        "height": 740,
+        "minWidth": 420,
+        "minHeight": 480,
+        "resizable": true,
+        "contentProtected": true,
+        "incognito": true,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --disable-component-update --disable-background-networking --disable-domain-reliability --no-pings --disable-crash-reporter --proxy-server=socks5://127.0.0.1:9"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src ipc: http://ipc.localhost; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; frame-ancestors 'none'",
+      "freezePrototype": true,
+      "dangerousDisableAssetCspModification": false,
+      "capabilities": [
+        "default"
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "deb",
+      "msi",
+      "nsis"
+    ],
+    "category": "SocialNetworking",
+    "shortDescription": "Private, serverless, end-to-end encrypted chat over Tor",
+    "longDescription": "Two-person messenger using the Signal protocol (PQXDH + Double Ratchet) over Tor onion services. No servers.",
+    "copyright": "AGPL-3.0-only",
+    "license": "AGPL-3.0-only",
+    "licenseFile": "../LICENSE",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "linux": {
+      "deb": {
+        "depends": [
+          "tor"
+        ],
+        "recommends": [
+          "lyrebird"
+        ]
+      }
+    },
+    "createUpdaterArtifacts": false
+  }
+}

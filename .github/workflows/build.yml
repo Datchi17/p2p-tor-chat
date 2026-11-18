@@ -1,0 +1,137 @@
+name: build
+
+# Every external input is pinned: actions to commit SHAs, Rust/Node/protoc to exact
+# versions (protoc also by SHA-256), crates via Cargo.lock (--locked), npm via package-lock
+# (npm ci), Tor for Windows by GPG signature + checksum (scripts/fetch-tor-windows.sh).
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  RUST_VERSION: "1.99.1"
+  PROTOC_VERSION: "36.2"
+  CARGO_TERM_COLOR: never
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            bundles: deb
+            protoc_zip: protoc-36.2-linux-x86_64.zip
+            protoc_sha256: 121f6c7afe1d4d0e3ea6aab9432038599250134cbf4474cb1167d2c7decd4278
+          - os: windows-2022
+            bundles: msi,nsis
+            protoc_zip: protoc-36.2-win64.zip
+            protoc_sha256: f0c128dc0d8492eceece83bb459a4c0e316764b929ffbf1aa416357fd644edd3
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev libayatana-appindicator3-dev \
+            libxdo-dev libssl-dev build-essential
+
+      - name: Use Strawberry Perl for the vendored OpenSSL build (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          perl_exe='C:/Strawberry/perl/bin/perl.exe'
+          test -f "$perl_exe" || { echo "::error::Strawberry Perl not found"; exit 1; }
+          echo "OPENSSL_SRC_PERL=$perl_exe" >> "$GITHUB_ENV"
+
+      - name: protoc (pinned, checksum-verified)
+        shell: bash
+        run: |
+          curl -sSfLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/${{ matrix.protoc_zip }}"
+          echo "${{ matrix.protoc_sha256 }}  ${{ matrix.protoc_zip }}" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/protoc"
+          py=python3; command -v python3 >/dev/null || py=python
+          "$py" -m zipfile -e "${{ matrix.protoc_zip }}" "$RUNNER_TEMP/protoc"
+          chmod +x "$RUNNER_TEMP/protoc/bin/"* || true
+          exe="protoc"; [[ "$RUNNER_OS" == "Windows" ]] && exe="protoc.exe"
+          echo "PROTOC=$RUNNER_TEMP/protoc/bin/$exe" >> "$GITHUB_ENV"
+
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable branch, 2026-10
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22.12.0"
+
+      - name: Fetch and verify Tor for Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: scripts/fetch-tor-windows.sh
+
+      - name: Unit tests
+        shell: bash
+        run: cargo test --workspace --exclude p2p-chat --locked
+
+      - name: Live Tor test on Windows (two full app cores over real onion services)
+        if: runner.os == 'Windows'
+        shell: bash
+        timeout-minutes: 25
+        run: |
+          export PATH="$PWD/vendor/tor-windows/tor:$PATH"
+          cargo test -p p2p-core --test e2e_live --locked -- --ignored --nocapture
+
+      - name: Install UI dependencies
+        run: npm ci --prefix ui
+
+      # The app shows "this version is N days old" from this date; it never checks online.
+      - name: Build date = commit date
+        shell: bash
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
+
+      - name: Build app
+        shell: bash
+        run: ./ui/node_modules/.bin/tauri build --bundles ${{ matrix.bundles }} -- --locked
+
+      - name: Checksums
+        shell: bash
+        run: |
+          cd target/release/bundle
+          find . -type f \( -name '*.deb' -o -name '*.msi' -o -name '*-setup.exe' \) \
+            -exec sha256sum {} \; | tee "SHA256SUMS-${RUNNER_OS}.txt"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: p2p-chat-${{ runner.os }}
+          path: |
+            target/release/bundle/**/*.deb
+            target/release/bundle/**/*.msi
+            target/release/bundle/**/*-setup.exe
+            target/release/bundle/SHA256SUMS-*.txt
+          if-no-files-found: error
+
+  # Same pinned container as scripts/repro-build-linux.sh on Kali. Compare the app-binary
+  # hash in REPRO-SHA256SUMS.txt with your local run of the script for the same commit.
+  linux-reproducible:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Reproducible build in pinned container
+        run: scripts/repro-build-linux.sh HEAD
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: p2p-chat-linux-reproducible
+          path: |
+            dist-repro/*/REPRO-SHA256SUMS.txt
+            dist-repro/*/*.deb
+          if-no-files-found: error

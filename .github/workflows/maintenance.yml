@@ -1,0 +1,70 @@
+name: maintenance
+
+# Weekly health check. Turns red (GitHub emails the owner) when something needs an update:
+# a vulnerable Rust dependency, a newer Tor Expert Bundle, or a newer libsignal release.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"   # Mondays 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@b725eda525362e7cf34af9a7243cac1e3f01a7ec # stable branch, 2026-10
+        with:
+          toolchain: "1.99.1"
+
+      - name: cargo audit (known vulnerabilities in dependencies)
+        run: |
+          cargo install cargo-audit --locked --version 0.22.2
+          cargo audit --deny warnings \
+            --ignore RUSTSEC-2024-0370 \
+            --ignore RUSTSEC-2026-0173 \
+            --ignore RUSTSEC-2024-0429
+          # Ignored (reviewed): two unmaintained compile-time proc-macro crates, and a glib
+          # iterator unsoundness in an API the app never calls. Re-review if they change.
+
+      - name: Tor Expert Bundle up to date?
+        run: |
+          pinned=$(grep -oP 'VERSION="\$\{1:-\K[0-9.]+' scripts/fetch-tor-windows.sh)
+          # Newest stable release that actually ships a Windows Expert Bundle (some releases
+          # are Android-only, and alphas like 16.0a14 are skipped).
+          latest=""
+          for v in $(curl -sSf https://dist.torproject.org/torbrowser/ \
+            | grep -oE 'href="[0-9]+\.[0-9]+(\.[0-9]+)?/"' | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | sort -rV); do
+            if curl -sSf "https://dist.torproject.org/torbrowser/$v/" | grep -q "tor-expert-bundle-windows-x86_64-$v.tar.gz\""; then
+              latest=$v; break
+            fi
+          done
+          if [ -z "$latest" ]; then
+            echo "::error::Could not find any Windows Tor Expert Bundle on dist.torproject.org."
+            exit 1
+          fi
+          echo "pinned=$pinned latest=$latest"
+          if [ "$pinned" != "$latest" ]; then
+            echo "::error::Tor Expert Bundle $latest is available (pinned: $pinned). Update scripts/fetch-tor-windows.sh."
+            exit 1
+          fi
+
+      - name: libsignal up to date?
+        run: |
+          pinned=$(grep -oP 'libsignal-protocol = \{ git = "[^"]+", tag = "\K[^"]+' crates/p2p-signal/Cargo.toml)
+          latest=$(git ls-remote --tags --refs https://github.com/signalapp/libsignal | awk -F/ '{print $3}' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          # Newer releases already reviewed and deliberately not adopted (see docs/UPDATES.md,
+          # "Reviewed and skipped"). Raise this only after reading the new release's changes.
+          reviewed="v0.108.0"
+          echo "pinned=$pinned latest=$latest reviewed=$reviewed"
+          newest_known=$(printf '%s\n%s\n' "$pinned" "$reviewed" | sort -V | tail -1)
+          if [ "$(printf '%s\n%s\n' "$newest_known" "$latest" | sort -V | tail -1)" != "$newest_known" ]; then
+            echo "::error::libsignal $latest is available (pinned: $pinned, reviewed up to: $reviewed). Read its changes for security fixes."
+            exit 1
+          fi

@@ -1,0 +1,35 @@
+# Reproducible Linux build environment. Every input is pinned:
+# base image by digest, Debian packages via a dated snapshot.debian.org archive,
+# Rust/Node/protoc by exact version and SHA-256. Same image on Kali and in CI.
+FROM debian@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587
+
+ARG SNAPSHOT=20261015T000000Z
+# Plain HTTP is fine: apt verifies every package against Debian's signed Release files.
+RUN rm -f /etc/apt/sources.list.d/* \
+ && printf 'deb http://snapshot.debian.org/archive/debian/%s bookworm main\ndeb http://snapshot.debian.org/archive/debian/%s bookworm-updates main\ndeb http://snapshot.debian.org/archive/debian-security/%s bookworm-security main\n' \
+      "$SNAPSHOT" "$SNAPSHOT" "$SNAPSHOT" > /etc/apt/sources.list \
+ && apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Retries=5 update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      build-essential pkg-config ca-certificates curl xz-utils unzip file git \
+      libwebkit2gtk-4.1-dev librsvg2-dev libayatana-appindicator3-dev libxdo-dev libssl-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+# Node.js 22.12.0
+RUN curl -sSfL -o /tmp/node.tar.xz https://nodejs.org/dist/v22.12.0/node-v22.12.0-linux-x64.tar.xz \
+ && echo "22982235e1b71fa8850f82edd09cdae7e3f32df1764a9ec298c72d25ef2c164f  /tmp/node.tar.xz" | sha256sum -c - \
+ && mkdir -p /opt/node && tar -xJf /tmp/node.tar.xz -C /opt/node --strip-components=1 && rm /tmp/node.tar.xz
+
+# protoc 36.2
+RUN curl -sSfL -o /tmp/protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v36.2/protoc-36.2-linux-x86_64.zip \
+ && echo "121f6c7afe1d4d0e3ea6aab9432038599250134cbf4474cb1167d2c7decd4278  /tmp/protoc.zip" | sha256sum -c - \
+ && mkdir -p /opt/protoc && unzip -q /tmp/protoc.zip -d /opt/protoc && rm /tmp/protoc.zip
+
+# Rust 1.99.1 via rustup-init 1.29.1 (toolchain downloads are checksum-verified by rustup)
+ENV RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo
+RUN curl -sSfL -o /tmp/rustup-init https://static.rust-lang.org/rustup/archive/1.29.1/x86_64-unknown-linux-gnu/rustup-init \
+ && echo "dda7234360b7f578ca8b0ddcb80145646fa61a67c1720a5abc7051b35c9fcb71  /tmp/rustup-init" | sha256sum -c - \
+ && chmod +x /tmp/rustup-init && /tmp/rustup-init -y --profile minimal --default-toolchain 1.99.1 --no-modify-path \
+ && rm /tmp/rustup-init
+
+ENV PATH=/opt/cargo/bin:/opt/node/bin:$PATH PROTOC=/opt/protoc/bin/protoc
+WORKDIR /build

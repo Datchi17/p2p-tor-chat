@@ -1,0 +1,25 @@
+[package]
+name = "p2p-signal"
+description = "Signal protocol (PQXDH + Double Ratchet / SPQR) on top of the encrypted vault"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+async-trait = "0.1.92"
+futures-executor = "0.3.34"
+hex = "0.4.3"
+libsignal-protocol = { git = "https://github.com/signalapp/libsignal", tag = "v0.105.2" }
+p2p-proto = { path = "../p2p-proto" }
+p2p-vault = { path = "../p2p-vault" }
+rand = "0.9"
+thiserror = "2.0.21"
+zeroize = "1.9.1"
+
+[dev-dependencies]
+p2p-vault = { path = "../p2p-vault", features = ["insecure-test-params"] }
+tempfile = "3.27.0"

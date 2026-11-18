@@ -1,0 +1,14 @@
+[package]
+name = "p2p-proto"
+description = "Wire formats (protobuf) for pairing codes, frames and message content"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+getrandom = "0.4.3"
+prost = "0.14.4"
