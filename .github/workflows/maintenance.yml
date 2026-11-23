@@ -64,7 +64,7 @@ jobs:
           latest=$(git ls-remote --tags --refs https://github.com/signalapp/libsignal | awk -F/ '{print $3}' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
           # Newer releases already reviewed and deliberately not adopted (see docs/UPDATES.md,
           # "Reviewed and skipped"). Raise this only after reading the new release's changes.
-          reviewed="v0.108.0"
+          reviewed="v0.108.5"
           echo "pinned=$pinned latest=$latest reviewed=$reviewed"
           newest_known=$(printf '%s\n%s\n' "$pinned" "$reviewed" | sort -V | tail -1)
           if [ "$(printf '%s\n%s\n' "$newest_known" "$latest" | sort -V | tail -1)" != "$newest_known" ]; then

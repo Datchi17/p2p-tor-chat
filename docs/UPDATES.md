@@ -42,6 +42,7 @@ Tor current there.
 | Date | What | Decision and why |
 |---|---|---|
 | 2026-11-14 | libsignal v0.106.0 – v0.108.0 (pinned: v0.105.2) | **Stay on v0.105.2.** No security fix applies to v0.105.2. These releases add *Tahini*, a rewrite of session management (~3,000 lines, first shipped in v0.106.0 on 2026-10-23); v0.108.0's "reject PreKey messages carrying our own base key" fixes the new Tahini code. Wire format and stored sessions stay compatible, so upgrading later is safe. Re-evaluate once Tahini has had a few weeks of fixes. The weekly check accepts up to v0.108.0 (`reviewed=` in `.github/workflows/maintenance.yml`) and alerts on anything newer. |
+| 2026-11-23 | libsignal v0.108.1 – v0.108.5 | **Stay on v0.105.2.** 40 commits, none in `rust/protocol` (the part this app uses) except the version number: server APIs (profiles, avatars, subscriptions, gRPC), backups and build tooling. The weekly check now accepts up to v0.108.5. |
 
 ## Red flags — stop and call
 

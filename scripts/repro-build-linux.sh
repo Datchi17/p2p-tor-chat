@@ -14,12 +14,21 @@ image=p2pchat-linux-builder:1
 docker build -q -t "$image" -f "$root/build/Dockerfile.linux" "$root/build" >/dev/null
 rm -rf "$out" && mkdir -p "$out"
 
+# The ~10 GB of compiler output goes to a fresh folder next to the results (on the same disk
+# as this repo) instead of Docker's storage, which often sits on a small system partition.
+# Same path inside the container (/build/target), so the binary is unchanged.
+work="$root/dist-repro/.target-$commit"
+rm -rf "$work" && mkdir -p "$work"
+trap 'rm -rf "$work"' EXIT
+
 git -C "$root" archive --format=tar "$commit" | docker run -i --rm \
   -e SOURCE_DATE_EPOCH="$epoch" \
   -e CARGO_INCREMENTAL=0 \
   -e RUSTFLAGS="--remap-path-prefix=/build=/build --remap-path-prefix=/opt/cargo=/cargo" \
   -v "$out:/out" \
+  -v "$work:/build/target" \
   "$image" bash -euo pipefail -c '
+    trap "chown -R '"$(id -u):$(id -g)"' /build/target" EXIT
     tar -x -C /build
     npm ci --prefix ui --no-audit --no-fund >/dev/null
     ./ui/node_modules/.bin/tauri build --bundles deb -- --locked >/out/build.log 2>&1 || { tail -40 /out/build.log; exit 1; }
