@@ -4,8 +4,9 @@ Both of you install the versions below, then do the installer test from
 [docs/FRIEND_WINDOWS_TEST.md](docs/FRIEND_WINDOWS_TEST.md) **together on a live voice or video
 call**, starting with the fingerprint check.
 
-All builds come from commit **`a1e9558`** (2026-11-18). New in this version:
+All builds come from commit **`1e8ce3d`** (2026-11-23). New in this version:
 
+- **Security updates** of two libraries used by the desktop window (`cookie`, `url`).
 - **Received files can be saved again.** In every build since `a6145cd`, a file showed only
   as a grey line with no **Save…** button (found in the Windows test).
 - A text sent during a file transfer no longer waits behind the file (27 s before, now a few
@@ -49,16 +50,16 @@ larger than 100 messages.
 | | Kali (Datchi17) | Windows (friend) |
 |---|---|---|
 | File | `P2P Chat_0.1.0_amd64.deb` | `P2P Chat_0.1.0_x64_en-US.msi` |
-| Where | built locally with `scripts/repro-build-linux.sh a1e9558`, or the **p2p-chat-linux-reproducible** download of the build run below | the **p2p-chat-Windows** download of the build run below → `msi\` folder |
-| Build run | https://github.com/Datchi17/p2p-tor-chat/actions/runs/44377699782 | same |
-| Fingerprint (SHA-256) | app binary inside the .deb: `11ef2fc221356c97729a7026eea1e4d6e173bfb528d4aba2b6ed2ac114f6f22b` (identical on Kali and GitHub — reproducible build) | installer: `4e11d13a0d5fe92b5e69724cb4af5889baab9d4c7a00ec7619da3411de3b1194` |
+| Where | built locally with `scripts/repro-build-linux.sh 1e8ce3d`, or the **p2p-chat-linux-reproducible** download of the build run below | the **p2p-chat-Windows** download of the build run below → `msi\` folder |
+| Build run | https://github.com/Datchi17/p2p-tor-chat/actions/runs/45236343690 | same |
+| Fingerprint (SHA-256) | app binary inside the .deb: `cabaa47a67381b3d1709262afab4ec95e82ce8b9a961d90af3c3dd692856c104` (identical on Kali and GitHub — reproducible build) | installer: `8e221c9b3b9f4e2de06e662f0a0325e1d2c6183df0d0f41ad87ca25d02f41447` |
 
 > **Important:** the fingerprints written here are for reference only. Anyone who can change
 > this repository could change this file too. What counts is the fingerprint **Datchi17 reads
 > aloud on the call** from the copy downloaded on Kali, compared character by character with
 > what the friend's own PC computes.
 
-GitHub keeps build downloads for 90 days (until about 2027-02-16).
+GitHub keeps build downloads for 90 days (until about 2027-02-21).
 
 If you already have an older `~/p2p-win` folder, delete it first (`rm -rf ~/p2p-win`), or the
 download mixes old and new files.
@@ -68,7 +69,7 @@ download mixes old and new files.
 Close the app first. Your vault, contacts and messages are kept.
 
 ```bash
-cp ~/p2p-tor-chat/dist-repro/a1e9558a21fa144c07215578760cf97867943b89/"P2P Chat_0.1.0_amd64.deb" /tmp/p2p-chat.deb
+cp ~/p2p-tor-chat/dist-repro/1e8ce3d9a50313c8b0d0072b6217d75bc804e397/"P2P Chat_0.1.0_amd64.deb" /tmp/p2p-chat.deb
 sudo apt install --reinstall /tmp/p2p-chat.deb
 ```
 
@@ -76,11 +77,11 @@ Before the call, download the Windows installer on Kali and compute the fingerpr
 read aloud:
 
 ```bash
-gh run download 44377699782 --repo Datchi17/p2p-tor-chat -n p2p-chat-Windows -D ~/p2p-win
+gh run download 45236343690 --repo Datchi17/p2p-tor-chat -n p2p-chat-Windows -D ~/p2p-win
 sha256sum ~/p2p-win/msi/*.msi
 ```
 
-It must print `4e11d13a…de3b1194` (the full value above). If it doesn't, stop.
+It must print `8e221c9b…02f41447` (the full value above). If it doesn't, stop.
 
 ## Windows (your own PC first, then your friend)
 
@@ -88,7 +89,7 @@ Test it yourself first with [docs/WINDOWS_TEST.md](docs/WINDOWS_TEST.md). On a d
 run two copies of the app on Windows (its step 10a), since Kali is off while Windows runs.
 
 Your friend follows [docs/FRIEND_WINDOWS_TEST.md](docs/FRIEND_WINDOWS_TEST.md), using **build run
-44377699782** in step 1 (not just "the newest run": every Windows build has a different
+45236343690** in step 1 (not just "the newest run": every Windows build has a different
 fingerprint).
 
 ## On the call, in this order
