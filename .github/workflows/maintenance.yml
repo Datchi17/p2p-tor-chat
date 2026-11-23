@@ -29,9 +29,12 @@ jobs:
           cargo audit --deny warnings \
             --ignore RUSTSEC-2024-0370 \
             --ignore RUSTSEC-2026-0173 \
-            --ignore RUSTSEC-2024-0429
-          # Ignored (reviewed): two unmaintained compile-time proc-macro crates, and a glib
-          # iterator unsoundness in an API the app never calls. Re-review if they change.
+            --ignore RUSTSEC-2024-0429 \
+            --ignore RUSTSEC-2026-0543
+          # Ignored (reviewed): two unmaintained compile-time proc-macro crates, a glib
+          # iterator unsoundness in an API the app never calls, and the unmaintained `chrono`
+          # (2026-11-23), which is only an optional feature of serde_with that nothing enables:
+          # it is in Cargo.lock but never compiled. Re-review if they change.
 
       - name: Tor Expert Bundle up to date?
         run: |
